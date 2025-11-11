@@ -1,0 +1,9 @@
+# Dockerfile para OSRM Perú
+FROM osrm/osrm-backend
+WORKDIR /osrm-data
+RUN wget https://download.geofabrik.de/south-america/peru-latest.osm.pbf -O peru.osm.pbf
+RUN osrm-extract -p /opt/osrm-backend/profiles/car.lua peru.osm.pbf
+RUN osrm-partition peru.osrm
+RUN osrm-customize peru.osrm
+RUN rm peru.osm.pbf
+CMD ["osrm-routed", "--algorithm", "mld", "peru.osrm"]
