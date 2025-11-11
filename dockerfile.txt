@@ -1,15 +1,19 @@
+# Dockerfile para OSRM Perú. Basado en la imagen oficial 'osrm/osrm-backend' (Alpine Linux).
+
 FROM osrm/osrm-backend
+
+# Establecer el directorio de trabajo para los datos
 WORKDIR /osrm-data
 
-# 1. Instalar la herramienta de descarga (wget)
-RUN apt-get update && \
-    apt-get install -y wget && \
-    rm -rf /var/lib/apt/lists/*
+# 1. Instalar la utilidad de descarga 'wget' usando apk (Alpine Package Keeper).
+RUN apk update && \
+    apk add wget && \
+    rm -rf /var/cache/apk/*
 
-# 2. Descargar el archivo PBF de Perú (Ahora funcionará)
+# 2. Descargar el archivo PBF de Perú
 RUN wget https://download.geofabrik.de/south-america/peru-latest.osm.pbf -O peru.osm.pbf
 
-# 3. Preprocesar los datos
+# 3. Preprocesar los datos (los pasos de extract, partition y customize)
 RUN osrm-extract -p /opt/osrm-backend/profiles/car.lua peru.osm.pbf
 RUN osrm-partition peru.osrm
 RUN osrm-customize peru.osrm
@@ -17,5 +21,5 @@ RUN osrm-customize peru.osrm
 # 4. Limpiar el archivo PBF original
 RUN rm peru.osm.pbf
 
-# 5. Definir el comando por defecto
+# 5. Comando por defecto para iniciar el servidor OSRM
 CMD ["osrm-routed", "--algorithm", "mld", "peru.osrm"]
